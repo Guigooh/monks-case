@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Monks - Dashboard</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: #f5f8fc;
+    }
+    .logout-btn {
+      background: linear-gradient(90deg, #7928CA, #FF0080);
+      border: none;
+      color: #fff;
+      font-weight: 500;
+      padding: 6px 16px;
+      border-radius: 8px;
+      transition: 0.3s;
+    }
+    .logout-btn:hover { opacity: 0.9; }
+    .card {
+      border-radius: 16px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+    }
+    .metric {
+      font-size: 2rem;
+      font-weight: 600;
+      background: linear-gradient(90deg, #7928CA, #FF0080);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .btn-primary {
+      background: linear-gradient(90deg, #7928CA, #FF0080);
+      border: none;
+      border-radius: 10px;
+      font-weight: 500;
+    }
+    .btn-primary:hover { opacity: 0.9; }
+  </style>
+</head>
+<body class="p-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold">Dashboard</h2>
+    <div class="d-flex align-items-center gap-3">
+      <span class="fw-bold">.monks</span>
+      <button id="logoutBtn" class="logout-btn">Sair</button>
+    </div>
+  </div>
+
+  <p id="userInfo" class="fw-bold"></p>
+
+  <div class="row g-3 mb-4">
+    <div class="col-md-4">
+      <div class="card text-center p-3">
+        <span>Total de Registros</span>
+        <div id="totalRegistros" class="metric">0</div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card text-center p-3">
+        <span>Página Atual</span>
+        <div id="paginaAtual" class="metric">1</div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card text-center p-3">
+        <span>Registros por Página</span>
+        <div id="registrosPagina" class="metric">25</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card p-3 mb-4">
+    <div class="row g-3 align-items-end">
+      <div class="col-md-4">
+        <label for="startDate" class="form-label">Data inicial</label>
+        <input type="date" id="startDate" class="form-control">
+      </div>
+      <div class="col-md-4">
+        <label for="endDate" class="form-label">Data final</label>
+        <input type="date" id="endDate" class="form-control">
+      </div>
+      <div class="col-md-4">
+        <button id="filterBtn" class="btn btn-primary w-100">Filtrar</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card p-3">
+    <table class="table table-striped mb-0" id="dataTable">
+      <thead></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <div class="d-flex justify-content-between align-items-center mt-3">
+    <button id="prevBtn" class="btn btn-secondary">Anterior</button>
+    <span id="pageInfo"></span>
+    <button id="nextBtn" class="btn btn-secondary">Próxima</button>
+  </div>
+
+  <script>
+    const API_PREFIX = '/api';
+    const token = localStorage.getItem('monks_token');
+
+    if(!token){ window.location.href = "index.html"; }
+
+    let currentPage = 1;
+    let pageSize = 25;
+    let totalRecords = 0;
+    let startDateFilter = "";
+    let endDateFilter = "";
+
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+      localStorage.removeItem('monks_token');
+      window.location.href = "index.html";
+    });
+
+    fetch(API_PREFIX + '/me', {
+      headers: { Authorization: 'Bearer ' + token }
+    })
+    .then(res => {
+      if(res.status === 401){
+        localStorage.removeItem('monks_token');
+        window.location.href = "index.html";
+      }
+      return res.json();
+    })
+    .then(data => {
+      document.getElementById('userInfo').textContent =
+        "Usuário logado: " + data.email + " (role: " + data.role + ")";
+    });
+
+    async function loadData(page = 1) {
+      let url = `${API_PREFIX}/data?page=${page}&page_size=${pageSize}`;
+      if(startDateFilter) url += `&start_date=${startDateFilter}`;
+      if(endDateFilter) url += `&end_date=${endDateFilter}`;
+
+      const res = await fetch(url, { headers: { Authorization: 'Bearer ' + token } });
+      const resp = await res.json();
+
+      const { data, total } = resp;
+      totalRecords = total;
+      currentPage = page;
+
+      document.getElementById("totalRegistros").textContent = totalRecords;
+      document.getElementById("paginaAtual").textContent = currentPage;
+      document.getElementById("registrosPagina").textContent = pageSize;
+
+      const thead = document.querySelector("#dataTable thead");
+      const tbody = document.querySelector("#dataTable tbody");
+
+      if(!data || data.length === 0) {
+        thead.innerHTML = "";
+        tbody.innerHTML = "<tr><td colspan='5'>Nenhum dado encontrado</td></tr>";
+        document.getElementById('pageInfo').textContent = "";
+        return;
+      }
+
+      thead.innerHTML = "<tr>" + Object.keys(data[0]).map(c => `<th>${c}</th>`).join("") + "</tr>";
+      tbody.innerHTML = data.map(row =>
+        "<tr>" + Object.values(row).map(v => `<td>${v}</td>`).join("") + "</tr>"
+      ).join("");
+
+      const totalPages = Math.ceil(totalRecords / pageSize);
+      document.getElementById('pageInfo').textContent =
+        `Página ${currentPage} de ${totalPages} (Total: ${totalRecords} registros)`;
+
+      document.getElementById('prevBtn').disabled = currentPage === 1;
+      document.getElementById('nextBtn').disabled = currentPage >= totalPages;
+    }
+
+    document.getElementById('prevBtn').addEventListener('click', () => {
+      if(currentPage > 1) loadData(currentPage - 1);
+    });
+    document.getElementById('nextBtn').addEventListener('click', () => {
+      const totalPages = Math.ceil(totalRecords / pageSize);
+      if(currentPage < totalPages) loadData(currentPage + 1);
+    });
+
+    document.getElementById('filterBtn').addEventListener('click', () => {
+      startDateFilter = document.getElementById('startDate').value;
+      endDateFilter = document.getElementById('endDate').value;
+      loadData(1);
+    });
+
+    loadData();
+  </script>
+</body>
+</html>
