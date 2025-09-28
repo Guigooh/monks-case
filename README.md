@@ -166,7 +166,3 @@ export SECRET_KEY="minha_chave_super_secreta"
 - Adicionar CRUD de usuários via API.  
 
 ---
-
-## 👨‍💻 Autor
-
-Projeto desenvolvido como estudo com **FastAPI + Frontend estático (HTML/CSS/JS)**.
