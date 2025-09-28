@@ -17,15 +17,27 @@ Projeto desenvolvido para visualização de métricas a partir de arquivos CSV, 
 ## 📂 Estrutura de Pastas
 
 ```bash
-monks-case/
-├── backend/
-│   ├── main.py          # API FastAPI
-│   └── data/
-│       ├── users.csv    # Usuários cadastrados
-│       └── metrics.csv  # Métricas carregadas no dashboard
-├── frontend/
-│   ├── index.html       # Tela de login
-│   └── dashboard.html   # Tela do dashboard
+├── backend
+│ ├── app
+│ │ ├── routes
+│ │ │ ├── auth.py
+│ │ │ ├── init.py
+│ │ ├── config.py
+│ │ ├── database.py
+│ │ ├── main.py
+│ │ ├── models.py
+│ │ └── utils.py
+│ ├── data
+│ │ ├── users.csv
+│ │ └── metrics.csv
+│ ├── tests
+│ │ ├── test_auth.py
+│ │ ├── test_database.py
+│ │ └── test_utils.py
+│ └── requirements.txt
+├── frontend
+│ ├── index.html
+│ └── dashboard.html
 └── README.md
 ```
 
@@ -53,7 +65,7 @@ monks-case/
 
 4. **Executar o servidor**
    ```bash
-   uvicorn main:app --reload
+   python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
    ```
 
 👉 O servidor rodará em: [http://localhost:8000](http://localhost:8000)  
@@ -156,6 +168,20 @@ Retorna dados filtrados e paginados.
 export SECRET_KEY="minha_chave_super_secreta"
 ```
 
+## ✅ Testes
+
+Os testes estão localizados na pasta backend/tests e cobrem funcionalidades de autenticação, leitura de CSV e utilitários do projeto.
+
+
+
+Certifique-se que o ambiente virtual está ativo e as dependências estão instaladas.
+
+Execute os testes com `pytest`:
+
+```bash
+cd backend
+pytest
+```
 ---
 
 ## ✅ Melhorias Futuras
@@ -164,5 +190,9 @@ export SECRET_KEY="minha_chave_super_secreta"
 - Adicionar gráficos visuais (ex: Chart.js) no dashboard.  
 - Criar exportação de relatórios em Excel/PDF.  
 - Adicionar CRUD de usuários via API.  
-
+- Tratamento de erros.
+- Dockernização da API.
+- Adicionar um Middleware para Logs e Telemetria.
+- CI/CD com Github Actions ou Jenkins.
+- Adicionar testes de integração.
 ---
