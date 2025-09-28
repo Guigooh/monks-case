@@ -60,7 +60,7 @@ Projeto desenvolvido para visualização de métricas a partir de arquivos CSV, 
 
 3. **Instalar dependências**
    ```bash
-   pip install fastapi uvicorn[standard] python-jose pandas
+   pip install -r requirements.txt
    ```
 
 4. **Executar o servidor**
