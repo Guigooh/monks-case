@@ -1,5 +1,6 @@
-fastapi 
-uvicorn[standard] 
-pandas 
-python-jose[cryptography] 
-python-multipart 
+fastapi
+uvicorn[standard]
+pandas
+python-jose[cryptography]
+python-multipart
+pytest
